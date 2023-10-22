@@ -56,15 +56,10 @@ void setup() {
     Serial.println(ret);
   }
 
-//  ret = sps30_start_measurement();
-//  if (ret < 0) {
-//    Serial.print("error starting measurement\n");
-//  }
-
   delay(1000);
 
   setup_wifi();
-  client.setServer(mqtt_server, 1883);
+  connectMQTT();
 }
 
 void setup_wifi() {
@@ -84,7 +79,8 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-void reconnect() {
+void connectMQTT() {
+  client.setServer(mqtt_server, 1883);
   while (!client.connected()) {
     Serial.print("Connecting to MQTT broker…");
 
@@ -109,13 +105,10 @@ boolean isValidDisplayValue(String value) {
 }
 
 void loop() {
-  if(WiFi.status() != WL_CONNECTED) {
-    setup_wifi();
+  if((WiFi.status() != WL_CONNECTED) || !client.connected()) {
+    setup();
   }
-  
-  if (!client.connected()) {
-    reconnect();
-  }
+
   client.loop();
 
   delay(10000);
@@ -127,7 +120,7 @@ void loop() {
     //do nothing
   } else {
     sps30_wake_up();
-    delay(1000)
+    delay(1000);
     sps30_start_measurement();
     measurePM();
     delay(1000);
